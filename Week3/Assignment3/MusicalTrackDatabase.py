@@ -101,4 +101,43 @@ class DB:
             self.cur.execute('SELECT id FROM Artist WHERE name = ?', (artist,))
             artist_id = self.cur.fetchone()[0]
 
-            
+            self.cur.execute('''INSERT OR IGNORE INTO Genre(name) VALUES(?)''', (genre,))
+
+            self.cur.execute('SELECT id FROM Genre WHERE name = ?', (genre,))
+            genre_id = self.cur.fetchone()[0]
+
+            self.cur.execute('''INSERT OR IGNORE INTO Album(title, artist_id) VALUES(?,?)''', (album,artist_id))
+
+            self.cur.execute('SELECT id FROM Album WHERE title = ?', (album,))
+            album_id = self.cur.fetchone()[0]
+
+            self.cur.execute('''INSERT OR REPLACE INTO Track(title, album_id, genre_id, len, rating, count)
+                                VALUES(?,?,?,?,?,?)''', (name, album_id, genre_id, length, rating, count))
+
+            self.con.commit()
+
+
+    def show_db(self):
+        self.showData = self.cur.execute('''
+            SELECT Track.title, Artist.name, Album.title, Genre.name
+                FROM Track JOIN Genre JOIN Album JOIN Artist
+                    ON Track.genre_id = Genre.ID and Track.album_id = Album.id
+                AND ALbum.artist_id = Artist.id
+                ORDER BY Artist.name LIMIT 3
+            ''')
+
+        for self.data in self.showData:
+            print('Title:', self.data[0], 'Artist:', self.data[1], 'Album:', self.data[2], 'Genre:', self.data[3])
+
+    
+    def db_disconnection(self):
+        self.cur.close()
+
+
+if __name__ == '__main__':
+    obj = DB()
+    obj.db_connection()
+    obj.create_db()
+    obj.add_db()
+    obj.show_db()
+    obj.db_disconnection()
